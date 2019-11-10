@@ -70,6 +70,11 @@ public class OVRGrabber : MonoBehaviour
         get { return m_grabbedObj; }
     }
 
+    public OVRInput.Controller Controller
+    {
+        get { return m_controller; }
+    }
+
 	public void ForceRelease(OVRGrabbable grabbable)
     {
         bool canRelease = (
@@ -320,7 +325,7 @@ public class OVRGrabber : MonoBehaviour
 
     protected void GrabEnd()
     {
-        if (m_grabbedObj != null)
+        if (m_grabbedObj != null && m_grabbedObj.gameObject.tag != "Light")//makes sure it's not the light. You can't let go of light
         {
 			OVRPose localPose = new OVRPose { position = OVRInput.GetLocalControllerPosition(m_controller), orientation = OVRInput.GetLocalControllerRotation(m_controller) };
             OVRPose offsetPose = new OVRPose { position = m_anchorOffsetPosition, orientation = m_anchorOffsetRotation };

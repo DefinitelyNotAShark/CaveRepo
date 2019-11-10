@@ -15,6 +15,7 @@ permissions and limitations under the License.
 ************************************************************************************/
 
 using System;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -33,9 +34,18 @@ public class OVRGrabbable : MonoBehaviour
     [SerializeField]
     protected Collider[] m_grabPoints = null;
 
+    [SerializeField]
+    private AudioClip click, lightNoise;
+
+    [SerializeField]
+    private float clickVolume, lightNoiseVolume;
+
     protected bool m_grabbedKinematic = false;
     protected Collider m_grabbedCollider = null;
     protected OVRGrabber m_grabbedBy = null;
+
+    private bool grabbedLight = false;
+    private AudioSource audio;
 
 	/// <summary>
 	/// If true, the object can currently be grabbed.
@@ -117,12 +127,36 @@ public class OVRGrabbable : MonoBehaviour
         m_grabbedBy = hand;
         m_grabbedCollider = grabPoint;
         gameObject.GetComponent<Rigidbody>().isKinematic = true;
+
+        //play the sound effect for being grabbed
+        if(!grabbedLight)
+        StartCoroutine(PlayGrabSound(hand));
     }
 
-	/// <summary>
-	/// Notifies the object that it has been released.
-	/// </summary>
-	virtual public void GrabEnd(Vector3 linearVelocity, Vector3 angularVelocity)
+    /// <summary>
+    /// Play the sound of the lantern being grabbed, wait and then play the light noise and rumble the controller grabbing the lantern to it.
+    /// </summary>
+    /// <param name="hand">The grabbing script that is grabbing the object</param>
+    /// <returns>Waits for a fraction of the second to seperate the noises</returns>
+    private IEnumerator PlayGrabSound(OVRGrabber hand)
+    {
+        audio.PlayOneShot(click, clickVolume);//play grabbing sound
+        yield return new WaitForSeconds(.3f);
+        audio.PlayOneShot(lightNoise, lightNoiseVolume);//play light sound
+
+        //Get which hand and then vibrate it to the light noise
+        if(hand.Controller == OVRInput.Controller.RTouch)
+            OVRHaptics.RightChannel.Preempt(new OVRHapticsClip(click));//rumble right controller to light sound
+        else if (hand.Controller == OVRInput.Controller.LTouch)
+            OVRHaptics.RightChannel.Preempt(new OVRHapticsClip(click));//rumble left controller to light sound
+
+        grabbedLight = true;
+    }
+
+    /// <summary>
+    /// Notifies the object that it has been released.
+    /// </summary>
+    virtual public void GrabEnd(Vector3 linearVelocity, Vector3 angularVelocity)
     {
         Rigidbody rb = gameObject.GetComponent<Rigidbody>();
         rb.isKinematic = m_grabbedKinematic;
@@ -151,6 +185,7 @@ public class OVRGrabbable : MonoBehaviour
     protected virtual void Start()
     {
         m_grabbedKinematic = GetComponent<Rigidbody>().isKinematic;
+        audio = GetComponent<AudioSource>();
     }
 
     void OnDestroy()
