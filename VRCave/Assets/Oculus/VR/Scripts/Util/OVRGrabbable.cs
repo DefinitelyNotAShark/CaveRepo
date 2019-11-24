@@ -48,9 +48,24 @@ public class OVRGrabbable : MonoBehaviour
     private AudioSource audio;
     private Image grabShow;
 
-	/// <summary>
-	/// If true, the object can currently be grabbed.
-	/// </summary>
+    // Floater v0.0.2
+    // by Donovan Keith
+    //
+    // [MIT License](https://opensource.org/licenses/MIT)
+
+    // User Inputs
+    public float degreesPerSecond = 15.0f;
+    public float amplitude = 0.5f;
+    public float frequency = 1f;
+
+    // Position Storage Variables
+    Vector3 posOffset = new Vector3();
+    Vector3 tempPos = new Vector3();
+
+
+    /// <summary>
+    /// If true, the object can currently be grabbed.
+    /// </summary>
     public bool allowOffhandGrab
     {
         get { return m_allowOffhandGrab; }
@@ -189,6 +204,7 @@ public class OVRGrabbable : MonoBehaviour
     {
         m_grabbedKinematic = GetComponent<Rigidbody>().isKinematic;
         audio = GetComponent<AudioSource>();
+        posOffset = transform.position;
     }
 
     void OnDestroy()
@@ -198,5 +214,24 @@ public class OVRGrabbable : MonoBehaviour
             // Notify the hand to release destroyed grabbables
             m_grabbedBy.ForceRelease(this);
         }
+    }
+
+    private void Update()
+    {
+        if (!isGrabbed)
+        {
+            Float();
+        }
+    }
+    void Float()
+    {
+        // Spin object around Y-Axis
+        transform.Rotate(new Vector3(0f, Time.deltaTime * degreesPerSecond, 0f), Space.World);
+
+        // Float up/down with a Sin()
+        tempPos = posOffset;
+        tempPos.y += Mathf.Sin(Time.fixedTime * Mathf.PI * frequency) * amplitude;
+
+        transform.position = tempPos;
     }
 }
