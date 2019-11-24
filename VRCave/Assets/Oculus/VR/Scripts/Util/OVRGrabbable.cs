@@ -17,6 +17,7 @@ permissions and limitations under the License.
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// An object that can be grabbed and thrown by OVRGrabber.
@@ -46,6 +47,7 @@ public class OVRGrabbable : MonoBehaviour
 
     private bool grabbedLight = false;
     private AudioSource audio;
+    private Image grabShow;
 
 	/// <summary>
 	/// If true, the object can currently be grabbed.
@@ -127,6 +129,7 @@ public class OVRGrabbable : MonoBehaviour
         m_grabbedBy = hand;
         m_grabbedCollider = grabPoint;
         gameObject.GetComponent<Rigidbody>().isKinematic = true;
+        grabShow = GetComponentInChildren<Image>();
 
         //play the sound effect for being grabbed
         if(!grabbedLight)
@@ -141,6 +144,7 @@ public class OVRGrabbable : MonoBehaviour
     private IEnumerator PlayGrabSound(OVRGrabber hand)
     {
         audio.PlayOneShot(click, clickVolume);//play grabbing sound
+        grabShow.enabled = false;//turn off the how to grab UI;
         yield return new WaitForSeconds(.3f);
         audio.PlayOneShot(lightNoise, lightNoiseVolume);//play light sound
 
